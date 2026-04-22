@@ -1,0 +1,56 @@
+.main-layout {
+  display: grid;
+  grid-template-columns: 20% 1fr;
+  gap: 1rem;
+  height: 100vh;
+  padding: 2rem;
+}
+
+.sidebar {
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  gap: 1rem;
+  background-color: rgb(255, 252, 222);
+  padding: 1.5rem;
+  outline: 1px solid gainsboro;
+}
+
+.main-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  background-color: rgb(255, 239, 222);
+  padding: 1.5rem;
+  outline: 1px solid gainsboro;
+}
+
+.nav-links {
+  display: flex;
+  flex-direction: column;
+  padding: 1rem;
+  gap: 1rem;
+}
+
+.nav-link {
+  outline: 1px solid gainsboro;
+  padding: 1rem;
+  text-decoration: none;
+  color: inherit;
+}
+
+button {
+  border: none;
+  outline: 1px solid gainsboro;
+  padding: 1rem;
+  background-color: transparent;
+  cursor: pointer;
+  font-size: inherit;
+}
+
+.nav-link.active {
+  background-color: rgb(66, 227, 255);
+}
+
+.nav-link:hover {
+  background-color: rgb(255, 66, 224);
+}
