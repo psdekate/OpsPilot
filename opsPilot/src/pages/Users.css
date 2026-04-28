@@ -5,6 +5,18 @@
   overflow: auto;
 }
 
+.users-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+.users-header input {
+  padding: 0.8rem;
+  width: 30%;
+}
+
 .users-list {
   display: flex;
   flex-direction: column;
