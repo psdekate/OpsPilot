@@ -3,6 +3,13 @@ import { getUsers } from "../services/usersApi";
 import "../pages/Users.css";
 import { useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
+import DataTable from "../components/DataTable";
+
+const columns = [
+  { header: "First Name", accessor: "firstName" },
+  { header: "Last Name", accessor: "lastName" },
+  { header: "Email", accessor: "email" },
+];
 
 export default function Users() {
   const [users, setUsers] = useState([]);
@@ -78,11 +85,7 @@ export default function Users() {
           onChange={(e) => setSearchInput(e.target.value)}
         />
       </div>
-      <div className="users-list">
-        {paginatedUsers.map((user) => (
-          <p key={user.id}>{user.firstName}</p>
-        ))}
-      </div>
+      <DataTable columns={columns} data={paginatedUsers} />
       <div className="button-row">
         <button
           disabled={page === 1}
