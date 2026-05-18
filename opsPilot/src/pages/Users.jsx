@@ -1,14 +1,24 @@
-import { useEffect, useState } from "react";
+import { isValidElement, useEffect, useState } from "react";
 import { getUsers } from "../services/usersApi";
 import "../pages/Users.css";
 import { useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
 import DataTable from "../components/DataTable";
+import ConfirmModal from "../components/ConfirmModal";
 
 const columns = [
   { header: "First Name", accessor: "firstName" },
   { header: "Last Name", accessor: "lastName" },
   { header: "Email", accessor: "email" },
+  {
+    header: "Actions",
+    render: (row) => (
+      <>
+        <button onClick={() => handleEdit(row)}>Edit</button>
+        <button onClick={() => handleDeleteClick(row)}>Delete</button>
+      </>
+    ),
+  },
 ];
 
 export default function Users() {
@@ -16,11 +26,25 @@ export default function Users() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchParams, setSearchParams] = useSearchParams();
+  const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+  const [userToDelete, setUserToDelete] = useState(null);
+  const [toastMessage, setToastMessage] = useState("");
 
   const userSearch = searchParams.get("search") || "";
   const page = Number(searchParams.get("page")) || 1;
   const itemsPerPage = 8;
   const [searchInput, setSearchInput] = useState(userSearch);
+
+  function handleDeleteClick(user) {
+    setUserToDelete(false);
+    setIsDeleteOpen(true);
+  }
+
+  function confirmDelete() {
+    setUsers((prev) => prev.filter((user) => user.id !== userToDelete.id));
+    setIsDeleteOpen(false);
+    setToastMessage("User deleted successfully");
+  }
 
   const filteredUsers = useMemo(() => {
     const query = userSearch.toLowerCase().trim();
@@ -35,6 +59,16 @@ export default function Users() {
     (page - 1) * itemsPerPage,
     page * itemsPerPage,
   );
+
+  useEffect(() => {
+    if (!toastMessage) return;
+
+    const timer = setTimeout(() => {
+      setToastMessage("");
+    }, 3000);
+
+    return () => clearTimeout(timer);
+  }, [toastMessage]);
 
   //debounce
   useEffect(() => {
@@ -86,6 +120,7 @@ export default function Users() {
         />
       </div>
       <DataTable columns={columns} data={paginatedUsers} />
+      {toastMessage && <div>{toastMessage}</div>}
       <div className="button-row">
         <button
           disabled={page === 1}
@@ -113,6 +148,13 @@ export default function Users() {
           Next
         </button>
       </div>
+      <ConfirmModal
+        isOpen={isDeleteOpen}
+        title="Delete User"
+        message={`Delete ${userToDelete?.firstName}?`}
+        onConfirm={confirmDelete}
+        onCancel={() => setIsDeleteOpen(false)}
+      />
     </div>
   );
 }
