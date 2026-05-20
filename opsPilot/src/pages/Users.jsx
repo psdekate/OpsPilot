@@ -1,14 +1,13 @@
 import { useEffect, useState } from "react";
-import { getUsers, updateUser, deleteUser } from "../services/usersApi";
 import "../pages/Users.css";
 import { useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
 import DataTable from "../components/DataTable";
 import ConfirmModal from "../components/ConfirmModal";
 import EditUserModal from "../components/EditUserModal";
-import useToastStore from "../store/toastStore";
-import { useQuery } from "@tanstack/react-query";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import useUsers from "../hooks/useUsers";
+import useDeleteUser from "../hooks/useDeleteUser";
+import useUpdateUser from "../hooks/useUpdateUser";
 
 export default function Users() {
   const columns = [
@@ -29,7 +28,6 @@ export default function Users() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState(null);
-  // const [toastMessage, setToastMessage] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
 
@@ -39,38 +37,11 @@ export default function Users() {
   const [searchInput, setSearchInput] = useState(userSearch);
 
   const showToast = useToastStore((state) => state.showToast);
-  const { data, isLoading, error } = useQuery({
-    queryKey: ["users"],
-    queryFn: getUsers,
-  });
+  const { data, isLoading, error } = useUsers();
 
   const users = data?.data?.users || [];
-  const [localUsers, setLocalUsers] = useState([]);
-
-  const queryClient = useQueryClient();
-  const deleteMutation = useMutation({
-    mutationFn: deleteUser,
-
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ["users"],
-      });
-
-      showToast("User deleted successfully");
-    },
-  });
-
-  const updateMutation = useMutation({
-    mutationFn: updateUser,
-
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ["users"],
-      });
-
-      showToast("User updated successfully");
-    },
-  });
+  const deleteMutation = useDeleteUser();
+  const updateMutation = useUpdateUser();
 
   function handleSave(updatedData) {
     updateMutation.mutate({
@@ -99,24 +70,16 @@ export default function Users() {
   const filteredUsers = useMemo(() => {
     const query = userSearch.toLowerCase().trim();
 
-    if (!query) return localUsers;
+    if (!query) return users;
 
-    return localUsers.filter((user) =>
-      user.firstName.toLowerCase().includes(query),
-    );
-  }, [localUsers, userSearch]);
+    return users.filter((user) => user.firstName.toLowerCase().includes(query));
+  }, [users, userSearch]);
   const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
 
   const paginatedUsers = filteredUsers.slice(
     (page - 1) * itemsPerPage,
     page * itemsPerPage,
   );
-
-  useEffect(() => {
-    if (localUsers.length) {
-      setLocalUsers(localUsers);
-    }
-  }, [localUsers]);
 
   //debounce
   useEffect(() => {
@@ -139,7 +102,7 @@ export default function Users() {
 
   if (isLoading) return <p>Loading users...</p>;
   if (error) return <p>{error}</p>;
-  if (localUsers.length === 0) return <p>No users found</p>;
+  if (users.length === 0) return <p>No users found</p>;
 
   return (
     <div className="users">
