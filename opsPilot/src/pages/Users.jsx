@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { getUsers } from "../services/usersApi";
+import { getUsers, updateUser, deleteUser } from "../services/usersApi";
 import "../pages/Users.css";
 import { useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
@@ -8,6 +8,7 @@ import ConfirmModal from "../components/ConfirmModal";
 import EditUserModal from "../components/EditUserModal";
 import useToastStore from "../store/toastStore";
 import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 export default function Users() {
   const columns = [
@@ -47,15 +48,49 @@ export default function Users() {
   });
 
   const users = data?.data?.users || [];
+  const [localUsers, setLocalUsers] = useState([]);
+
+  const queryClient = useQueryClient();
+  const deleteMutation = useMutation({
+    mutationFn: deleteUser,
+
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["users"],
+      });
+
+      showToast("User deleted successfully");
+    },
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: updateUser,
+
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["users"],
+      });
+
+      showToast("User updated successfully");
+    },
+  });
 
   function handleSave(updatedData) {
-    setUsers((prev) =>
-      prev.map((user) =>
-        user.id === selectedUser.id ? { ...user, ...updatedData } : user,
-      ),
-    );
+    updateMutation.mutate({
+      id: selectedUser.id,
+      data: updatedData,
+    });
 
     setIsModalOpen(false);
+    // setLocalUsers((prev) =>
+    //   prev.map((user) =>
+    //     user.id === selectedUser.id ? { ...user, ...updatedData } : user,
+    //   ),
+    // );
+
+    setIsModalOpen(false);
+
+    showToast("User updated successfully");
   }
 
   function handleEdit(user) {
@@ -69,25 +104,33 @@ export default function Users() {
   }
 
   function confirmDelete() {
-    setUsers((prev) => prev.filter((user) => user.id !== userToDelete.id));
+    deleteMutation.mutate(userToDelete.id);
+    // setLocalUsers((prev) => prev.filter((user) => user.id !== userToDelete.id));
     setIsDeleteOpen(false);
-    // setToastMessage("User deleted successfully");
-    showToast("User deleted successfully");
+    // showToast("User deleted successfully");
   }
 
   const filteredUsers = useMemo(() => {
     const query = userSearch.toLowerCase().trim();
 
-    if (!query) return users;
+    if (!query) return localUsers;
 
-    return users.filter((user) => user.firstName.toLowerCase().includes(query));
-  }, [users, userSearch]);
+    return localUsers.filter((user) =>
+      user.firstName.toLowerCase().includes(query),
+    );
+  }, [localUsers, userSearch]);
   const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
 
   const paginatedUsers = filteredUsers.slice(
     (page - 1) * itemsPerPage,
     page * itemsPerPage,
   );
+
+  useEffect(() => {
+    if (localUsers.length) {
+      setLocalUsers(localUsers);
+    }
+  }, [localUsers]);
 
   //to remove toast message automatically
   // useEffect(() => {
@@ -118,24 +161,24 @@ export default function Users() {
     setSearchInput(userSearch);
   }, [userSearch]);
 
-  useEffect(() => {
-    async function fetchUsers() {
-      try {
-        setLoading(true);
-        const res = await getUsers();
-        setUsers(res.data.users);
-      } catch (err) {
-        setError("Failed to fetch users");
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetchUsers();
-  }, []);
+  // useEffect(() => {
+  //   async function fetchUsers() {
+  //     try {
+  //       setLoading(true);
+  //       const res = await getUsers();
+  //       setUsers(res.data.users);
+  //     } catch (err) {
+  //       setError("Failed to fetch users");
+  //     } finally {
+  //       setLoading(false);
+  //     }
+  //   }
+  //   fetchUsers();
+  // }, []);
 
   if (isLoading) return <p>Loading users...</p>;
   if (error) return <p>{error}</p>;
-  if (users.length === 0) return <p>No users found</p>;
+  if (localUsers.length === 0) return <p>No users found</p>;
 
   return (
     <div className="users">
