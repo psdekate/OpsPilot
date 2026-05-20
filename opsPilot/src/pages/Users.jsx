@@ -1,4 +1,4 @@
-import { useEffect, useOptimistic, useState } from "react";
+import { useEffect, useState } from "react";
 import { getUsers } from "../services/usersApi";
 import "../pages/Users.css";
 import { useMemo } from "react";
@@ -7,6 +7,7 @@ import DataTable from "../components/DataTable";
 import ConfirmModal from "../components/ConfirmModal";
 import EditUserModal from "../components/EditUserModal";
 import useToastStore from "../store/toastStore";
+import { useQuery } from "@tanstack/react-query";
 
 export default function Users() {
   const columns = [
@@ -24,9 +25,9 @@ export default function Users() {
     },
   ];
 
-  const [users, setUsers] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  // const [users, setUsers] = useState([]);
+  // const [loading, setLoading] = useState(true);
+  // const [error, setError] = useState(null);
   const [searchParams, setSearchParams] = useSearchParams();
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState(null);
@@ -40,6 +41,12 @@ export default function Users() {
   const [searchInput, setSearchInput] = useState(userSearch);
 
   const showToast = useToastStore((state) => state.showToast);
+  const { data, isLoading, error } = useQuery({
+    queryKey: ["users"],
+    queryFn: getUsers,
+  });
+
+  const users = data?.data?.users || [];
 
   function handleSave(updatedData) {
     setUsers((prev) =>
@@ -85,7 +92,6 @@ export default function Users() {
   //to remove toast message automatically
   // useEffect(() => {
   //   if (!toastMessage) return;
-
   //   const timer = setTimeout(() => {
   //     setToastMessage("");
   //   }, 3000);
@@ -127,7 +133,7 @@ export default function Users() {
     fetchUsers();
   }, []);
 
-  if (loading) return <p>Loading users...</p>;
+  if (isLoading) return <p>Loading users...</p>;
   if (error) return <p>{error}</p>;
   if (users.length === 0) return <p>No users found</p>;
 
