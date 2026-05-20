@@ -26,9 +26,6 @@ export default function Users() {
     },
   ];
 
-  // const [users, setUsers] = useState([]);
-  // const [loading, setLoading] = useState(true);
-  // const [error, setError] = useState(null);
   const [searchParams, setSearchParams] = useSearchParams();
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState(null);
@@ -82,15 +79,6 @@ export default function Users() {
     });
 
     setIsModalOpen(false);
-    // setLocalUsers((prev) =>
-    //   prev.map((user) =>
-    //     user.id === selectedUser.id ? { ...user, ...updatedData } : user,
-    //   ),
-    // );
-
-    setIsModalOpen(false);
-
-    showToast("User updated successfully");
   }
 
   function handleEdit(user) {
@@ -105,9 +93,7 @@ export default function Users() {
 
   function confirmDelete() {
     deleteMutation.mutate(userToDelete.id);
-    // setLocalUsers((prev) => prev.filter((user) => user.id !== userToDelete.id));
     setIsDeleteOpen(false);
-    // showToast("User deleted successfully");
   }
 
   const filteredUsers = useMemo(() => {
@@ -132,16 +118,6 @@ export default function Users() {
     }
   }, [localUsers]);
 
-  //to remove toast message automatically
-  // useEffect(() => {
-  //   if (!toastMessage) return;
-  //   const timer = setTimeout(() => {
-  //     setToastMessage("");
-  //   }, 3000);
-
-  //   return () => clearTimeout(timer);
-  // }, [toastMessage]);
-
   //debounce
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -160,21 +136,6 @@ export default function Users() {
   useEffect(() => {
     setSearchInput(userSearch);
   }, [userSearch]);
-
-  // useEffect(() => {
-  //   async function fetchUsers() {
-  //     try {
-  //       setLoading(true);
-  //       const res = await getUsers();
-  //       setUsers(res.data.users);
-  //     } catch (err) {
-  //       setError("Failed to fetch users");
-  //     } finally {
-  //       setLoading(false);
-  //     }
-  //   }
-  //   fetchUsers();
-  // }, []);
 
   if (isLoading) return <p>Loading users...</p>;
   if (error) return <p>{error}</p>;
