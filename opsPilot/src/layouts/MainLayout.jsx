@@ -1,6 +1,7 @@
 import { Outlet, NavLink } from "react-router-dom";
 import useAuthStore from "../store/AuthStore";
 import "../layouts/MainLayout.css";
+import Toast from "../components/Toast";
 
 const navItems = [
   { path: "/", label: "Dashboard" },
@@ -34,6 +35,7 @@ export default function MainLayout() {
       </aside>
       <main className="main-content">
         <Outlet />
+        <Toast />
       </main>
     </div>
   );

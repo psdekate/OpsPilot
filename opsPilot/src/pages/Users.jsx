@@ -1,49 +1,71 @@
-import { isValidElement, useEffect, useState } from "react";
+import { useEffect, useOptimistic, useState } from "react";
 import { getUsers } from "../services/usersApi";
 import "../pages/Users.css";
 import { useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
 import DataTable from "../components/DataTable";
 import ConfirmModal from "../components/ConfirmModal";
-
-const columns = [
-  { header: "First Name", accessor: "firstName" },
-  { header: "Last Name", accessor: "lastName" },
-  { header: "Email", accessor: "email" },
-  {
-    header: "Actions",
-    render: (row) => (
-      <>
-        <button onClick={() => handleEdit(row)}>Edit</button>
-        <button onClick={() => handleDeleteClick(row)}>Delete</button>
-      </>
-    ),
-  },
-];
+import EditUserModal from "../components/EditUserModal";
+import useToastStore from "../store/toastStore";
 
 export default function Users() {
+  const columns = [
+    { header: "First Name", accessor: "firstName" },
+    { header: "Last Name", accessor: "lastName" },
+    { header: "Email", accessor: "email" },
+    {
+      header: "Actions",
+      render: (row) => (
+        <>
+          <button onClick={() => handleEdit(row)}>Edit</button>
+          <button onClick={() => handleDeleteClick(row)}>Delete</button>
+        </>
+      ),
+    },
+  ];
+
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchParams, setSearchParams] = useSearchParams();
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState(null);
-  const [toastMessage, setToastMessage] = useState("");
+  // const [toastMessage, setToastMessage] = useState("");
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState(null);
 
   const userSearch = searchParams.get("search") || "";
   const page = Number(searchParams.get("page")) || 1;
   const itemsPerPage = 8;
   const [searchInput, setSearchInput] = useState(userSearch);
 
+  const showToast = useToastStore((state) => state.showToast);
+
+  function handleSave(updatedData) {
+    setUsers((prev) =>
+      prev.map((user) =>
+        user.id === selectedUser.id ? { ...user, ...updatedData } : user,
+      ),
+    );
+
+    setIsModalOpen(false);
+  }
+
+  function handleEdit(user) {
+    setSelectedUser(user);
+    setIsModalOpen(true);
+  }
+
   function handleDeleteClick(user) {
-    setUserToDelete(false);
+    setUserToDelete(user);
     setIsDeleteOpen(true);
   }
 
   function confirmDelete() {
     setUsers((prev) => prev.filter((user) => user.id !== userToDelete.id));
     setIsDeleteOpen(false);
-    setToastMessage("User deleted successfully");
+    // setToastMessage("User deleted successfully");
+    showToast("User deleted successfully");
   }
 
   const filteredUsers = useMemo(() => {
@@ -60,15 +82,16 @@ export default function Users() {
     page * itemsPerPage,
   );
 
-  useEffect(() => {
-    if (!toastMessage) return;
+  //to remove toast message automatically
+  // useEffect(() => {
+  //   if (!toastMessage) return;
 
-    const timer = setTimeout(() => {
-      setToastMessage("");
-    }, 3000);
+  //   const timer = setTimeout(() => {
+  //     setToastMessage("");
+  //   }, 3000);
 
-    return () => clearTimeout(timer);
-  }, [toastMessage]);
+  //   return () => clearTimeout(timer);
+  // }, [toastMessage]);
 
   //debounce
   useEffect(() => {
@@ -120,7 +143,7 @@ export default function Users() {
         />
       </div>
       <DataTable columns={columns} data={paginatedUsers} />
-      {toastMessage && <div>{toastMessage}</div>}
+      {/* {toastMessage && <div>{toastMessage}</div>} */}
       <div className="button-row">
         <button
           disabled={page === 1}
@@ -148,6 +171,12 @@ export default function Users() {
           Next
         </button>
       </div>
+      <EditUserModal
+        isOpen={isModalOpen}
+        user={selectedUser}
+        onClose={() => setIsModalOpen(false)}
+        onSave={handleSave}
+      />
       <ConfirmModal
         isOpen={isDeleteOpen}
         title="Delete User"

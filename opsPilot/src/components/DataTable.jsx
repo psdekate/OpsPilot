@@ -8,11 +8,15 @@ export default function DataTable({ columns, data }) {
           ))}
         </tr>
       </thead>
+
       <tbody>
         {data.map((row) => (
           <tr key={row.id}>
             {columns.map((col) => (
-              <td key={col.accessor}>{row[col.accessor]}</td>
+              // <td key={col.accessor}>{row[col.accessor]}</td>
+              <td key={col.accessor || col.header}>
+                {col.render ? col.render(row) : row[col.accessor]}
+              </td>
             ))}
           </tr>
         ))}
