@@ -8,6 +8,9 @@ import EditUserModal from "../components/EditUserModal";
 import useUsers from "../hooks/useUsers";
 import useDeleteUser from "../hooks/useDeleteUser";
 import useUpdateUser from "../hooks/useUpdateUser";
+import useToastStore from "../store/toastStore";
+import { PERMISSIONS, ROLES } from "../constants/permissions";
+import { usePermissions } from "../hooks/userPermissions";
 
 export default function Users() {
   const columns = [
@@ -18,8 +21,13 @@ export default function Users() {
       header: "Actions",
       render: (row) => (
         <>
-          <button onClick={() => handleEdit(row)}>Edit</button>
-          <button onClick={() => handleDeleteClick(row)}>Delete</button>
+          {hasPermission(PERMISSIONS.EDIT_USER) && (
+            <button onClick={() => handleEdit(row)}>Edit</button>
+          )}
+
+          {hasPermission(PERMISSIONS.DELETE_USER) && (
+            <button onClick={() => handleDeleteClick(row)}>Delete</button>
+          )}
         </>
       ),
     },
@@ -42,6 +50,9 @@ export default function Users() {
   const users = data?.data?.users || [];
   const deleteMutation = useDeleteUser();
   const updateMutation = useUpdateUser();
+
+  const currentUserRole = ROLES.ADMIN;
+  const { hasPermission } = usePermissions(currentUserRole);
 
   function handleSave(updatedData) {
     updateMutation.mutate({
