@@ -12,6 +12,8 @@ import useToastStore from "../store/toastStore";
 import { PERMISSIONS, ROLES } from "../constants/permissions";
 import { usePermissions } from "../hooks/userPermissions";
 
+import { useAuth } from "../context/AuthContext";
+
 export default function Users() {
   const columns = [
     { header: "First Name", accessor: "firstName" },
@@ -51,8 +53,8 @@ export default function Users() {
   const deleteMutation = useDeleteUser();
   const updateMutation = useUpdateUser();
 
-  const currentUserRole = ROLES.ADMIN;
-  const { hasPermission } = usePermissions(currentUserRole);
+  const { user } = useAuth();
+  const { hasPermission } = usePermissions(user?.role);
 
   function handleSave(updatedData) {
     updateMutation.mutate({

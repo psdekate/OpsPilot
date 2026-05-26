@@ -1,53 +1,24 @@
 import { useNavigate } from "react-router-dom";
-import useAuthStore from "../store/AuthStore";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import "../pages/Login.css";
-
-const loginSchema = z.object({
-  email: z.string().email("Invalid email"),
-  password: z.string().min(6, "Minimum 6 chars"),
-});
+import { useAuth } from "../context/AuthContext";
+import { ROLES } from "../constants/permissions";
 
 export default function Login() {
-  const login = useAuthStore((state) => state.login);
+  const { login } = useAuth();
   const navigate = useNavigate();
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm({ resolver: zodResolver(loginSchema) });
+  function handleLogin(role) {
+    login({ name: "Piyush", role });
 
-  function onSubmit(data) {
-    login();
-    navigate("/");
+    navigate("/users");
   }
 
   return (
-    <div className="login-page">
-      <h2 style={{ textTransform: "uppercase" }}>Login to continue</h2>
-      <form action="" onSubmit={handleSubmit(onSubmit)} className="login-form">
-        <div className="inputs">
-          <input
-            type="text"
-            placeholder="Enter your email"
-            {...register("email")}
-          />
-          {errors.email && <p className="error-code">{errors.email.message}</p>}
-          <input
-            type="password"
-            placeholder="Enter your password"
-            {...register("password")}
-          />
-          {errors.password && (
-            <p className="error-code">{errors.password.message}</p>
-          )}
-        </div>
+    <div>
+      <h1>Login</h1>
 
-        <button type="submit">Login</button>
-      </form>
+      <button onClick={() => handleLogin(ROLES.ADMIN)}>Login as Admin</button>
+
+      <button onClick={() => handleLogin(ROLES.VIEWER)}>Login as Viewer</button>
     </div>
   );
 }

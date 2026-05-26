@@ -5,7 +5,7 @@ import Orders from "../pages/Orders";
 import Settings from "../pages/Settings";
 import Users from "../pages/Users";
 import MainLayout from "../layouts/MainLayout";
-import ProtectedRoute from "./ProtectedRoute";
+import ProtectedRoute from "../components/ProtectedRoute";
 
 export default function AppRoutes() {
   return (
@@ -18,8 +18,22 @@ export default function AppRoutes() {
           </ProtectedRoute>
         }
       >
-        <Route path="/" element={<Dashboard />} />
-        <Route path="/users" element={<Users />} />
+        <Route
+          path="/"
+          element={
+            <ProtectedRoute>
+              <Dashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/users"
+          element={
+            <ProtectedRoute>
+              <Users />
+            </ProtectedRoute>
+          }
+        />
         <Route path="/orders" element={<Orders />} />
         <Route path="/settings" element={<Settings />} />
       </Route>
