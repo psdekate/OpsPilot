@@ -18,15 +18,18 @@ export function useUpdateUser() {
       const previousUsers = queryClient.getQueryData(["users"]);
 
       queryClient.setQueryData(["users"], (oldData) => {
+        if (!oldData) return oldData;
+
         const users = oldData?.data?.users || [];
 
         return {
           ...oldData,
           data: {
             ...oldData.data,
-            users: users.map((user) =>
-              user.id === id ? { ...user, ...data } : user,
-            ),
+            users: users.filter((u) => u.id !== id),
+            // users: users.map((user) =>
+            //   user.id === id ? { ...user, ...data } : user,
+            // ),
           },
         };
       });

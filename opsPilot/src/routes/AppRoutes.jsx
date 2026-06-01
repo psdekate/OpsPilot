@@ -8,18 +8,14 @@ import Users from "../pages/Users";
 
 import MainLayout from "../layouts/MainLayout";
 import ProtectedRoute from "../components/ProtectedRoute";
-console.log("ProtectedRoute import", ProtectedRoute);
 
 export default function AppRoutes() {
-  console.log("App routes rendered");
   return (
     <Routes>
-      {/* <Route path="/login" element={<Login />} /> */}
       <Route
         path="/login"
         element={
           <>
-            {console.log("Login route matched")}
             <Login />
           </>
         }

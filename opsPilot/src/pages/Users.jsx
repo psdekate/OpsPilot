@@ -15,8 +15,6 @@ import { useAuth } from "../context/AuthContext";
 import { useDeleteUser } from "../hooks/useDeleteUser";
 
 export default function Users() {
-  console.log("Users page rendered");
-
   const columns = [
     { header: "First Name", accessor: "firstName", sortable: true },
     { header: "Last Name", accessor: "lastName", sortable: true },
