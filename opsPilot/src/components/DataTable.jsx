@@ -1,10 +1,24 @@
-export default function DataTable({ columns, data }) {
+export default function DataTable({ columns, data, sortConfig, onSort }) {
   return (
     <table border="1" cellPadding="10">
       <thead>
         <tr>
           {columns.map((col) => (
-            <th key={col.accessor}>{col.header}</th>
+            <th
+              key={col.accessor}
+              onClick={() => {
+                if (columns.sortable) {
+                  onSort(columns.accessible);
+                }
+              }}
+            >
+              {col.header}
+
+              {sortConfig?.key === col.accessor &&
+              sortConfig.direction === "asc"
+                ? "^"
+                : "V"}
+            </th>
           ))}
         </tr>
       </thead>

@@ -1,8 +1,8 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import useToastStore from "../store/toastStore";
 import { updateUser } from "../services/usersApi";
+import useToastStore from "../store/toastStore";
 
-export default function useUpdateUser() {
+export function useUpdateUser() {
   const queryClient = useQueryClient();
 
   const showToast = useToastStore((state) => state.showToast);
@@ -10,12 +10,41 @@ export default function useUpdateUser() {
   return useMutation({
     mutationFn: updateUser,
 
-    onSuccess: () => {
-      queryClient.invalidateQueries({
+    onMutate: async ({ id, data }) => {
+      await queryClient.cancelQueries({
         queryKey: ["users"],
       });
 
+      const previousUsers = queryClient.getQueryData(["users"]);
+
+      queryClient.setQueryData(["users"], (oldData) => {
+        const users = oldData?.data?.users || [];
+
+        return {
+          ...oldData,
+          data: {
+            ...oldData.data,
+            users: users.map((user) =>
+              user.id === id ? { ...user, ...data } : user,
+            ),
+          },
+        };
+      });
+      return { previousUsers };
+    },
+
+    onError: (error, variables, context) => {
+      queryClient.setQueryData(["users"], context.previousUsers);
+
+      showToast("Update failed - reverted");
+    },
+
+    onSuccess: () => {
       showToast("User updated successfully");
+    },
+
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ["users"] });
     },
   });
 }

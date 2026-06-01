@@ -1,5 +1,6 @@
 import { Outlet, NavLink } from "react-router-dom";
-import useAuthStore from "../store/AuthStore";
+// import useAuthStore from "../store/AuthStore";
+import { useAuth } from "../context/AuthContext";
 import "../layouts/MainLayout.css";
 import Toast from "../components/Toast";
 
@@ -11,7 +12,9 @@ const navItems = [
 ];
 
 export default function MainLayout() {
-  const logout = useAuthStore((state) => state.logout);
+  console.log("Main Layout rendered");
+
+  const { logout } = useAuth();
   return (
     <div className="main-layout">
       <aside className="sidebar">

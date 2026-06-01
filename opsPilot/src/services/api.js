@@ -4,14 +4,27 @@ const api = axios.create({
   baseURL: "https://dummyjson.com",
 });
 
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem("isAuth");
+api.interceptors.request.use(
+  (config) => {
+    const user = JSON.parse(localStorage.getItem("opspilot-user"));
 
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
+    if (user) {
+      config.headers.Authorization = `Bearer fake-token-${user.role}`;
+    }
+    return config;
+  },
+  (error) => Promise.reject(error),
+);
 
-  return config;
-});
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      localStorage.removeItem("opspilot-user");
+      window.location.href = "/login";
+    }
+    return Promise.reject(error);
+  },
+);
 
 export default api;

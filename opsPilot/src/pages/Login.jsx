@@ -1,24 +1,25 @@
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { ROLES } from "../constants/permissions";
 
 export default function Login() {
-  const { login } = useAuth();
   const navigate = useNavigate();
+  const { login } = useAuth();
 
-  function handleLogin(role) {
-    login({ name: "Piyush", role });
+  function handleLogin() {
+    console.log("login clicked");
 
-    navigate("/users");
+    login({ name: "Piyush", role: "admin" });
+    console.log("After login");
+    // navigate("/users");
+    window.location.href = "/users";
+    console.log("After navigate");
   }
 
   return (
     <div>
       <h1>Login</h1>
-
-      <button onClick={() => handleLogin(ROLES.ADMIN)}>Login as Admin</button>
-
-      <button onClick={() => handleLogin(ROLES.VIEWER)}>Login as Viewer</button>
+      <button onClick={handleLogin}>Login as Admin</button>
+      {/* <button onClick={() => handleLogin(ROLES.VIEWER)}>Login as Viewer</button> */}
     </div>
   );
 }

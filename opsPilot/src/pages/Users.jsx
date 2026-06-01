@@ -6,19 +6,21 @@ import DataTable from "../components/DataTable";
 import ConfirmModal from "../components/ConfirmModal";
 import EditUserModal from "../components/EditUserModal";
 import useUsers from "../hooks/useUsers";
-import useDeleteUser from "../hooks/useDeleteUser";
-import useUpdateUser from "../hooks/useUpdateUser";
+import { useUpdateUser } from "../hooks/useUpdateUser";
 import useToastStore from "../store/toastStore";
-import { PERMISSIONS, ROLES } from "../constants/permissions";
+import { PERMISSIONS } from "../constants/permissions";
 import { usePermissions } from "../hooks/userPermissions";
 
 import { useAuth } from "../context/AuthContext";
+import { useDeleteUser } from "../hooks/useDeleteUser";
 
 export default function Users() {
+  console.log("Users page rendered");
+
   const columns = [
-    { header: "First Name", accessor: "firstName" },
-    { header: "Last Name", accessor: "lastName" },
-    { header: "Email", accessor: "email" },
+    { header: "First Name", accessor: "firstName", sortable: true },
+    { header: "Last Name", accessor: "lastName", sortable: true },
+    { header: "Email", accessor: "email", sortable: true },
     {
       header: "Actions",
       render: (row) => (
@@ -40,6 +42,7 @@ export default function Users() {
   const [userToDelete, setUserToDelete] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
+  const [sortConfig, setSortConfig] = useState({ key: "", direction: "asc" });
 
   const userSearch = searchParams.get("search") || "";
   const page = Number(searchParams.get("page")) || 1;
@@ -55,6 +58,13 @@ export default function Users() {
 
   const { user } = useAuth();
   const { hasPermission } = usePermissions(user?.role);
+
+  function handleSort(key) {
+    setSortConfig((prev) => ({
+      key,
+      direction: prev.key === key && prev.direction === "asc" ? "desc" : "asc",
+    }));
+  }
 
   function handleSave(updatedData) {
     updateMutation.mutate({
@@ -89,7 +99,25 @@ export default function Users() {
   }, [users, userSearch]);
   const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
 
-  const paginatedUsers = filteredUsers.slice(
+  const sortedUsers = useMemo(() => {
+    if (!sortConfig.key) return filteredUsers;
+
+    return [...filteredUsers].sort((a, b) => {
+      const aValue = a[sortConfig.key]?.toString().toLowerCase();
+      const bValue = b[sortConfig.key]?.toString().toLowerCase();
+
+      if (aValue < bValue) {
+        return sortConfig.direction === "asc" ? -1 : 1;
+      }
+
+      if (aValue > bValue) {
+        return sortConfig.direction === "asc" ? 1 : -1;
+      }
+      return 0;
+    });
+  }, [filteredUsers, sortConfig]);
+
+  const paginatedUsers = sortedUsers.slice(
     (page - 1) * itemsPerPage,
     page * itemsPerPage,
   );
@@ -128,8 +156,12 @@ export default function Users() {
           onChange={(e) => setSearchInput(e.target.value)}
         />
       </div>
-      <DataTable columns={columns} data={paginatedUsers} />
-      {/* {toastMessage && <div>{toastMessage}</div>} */}
+      <DataTable
+        columns={columns}
+        data={paginatedUsers}
+        sortConfig={sortConfig}
+        onSort={handleSort}
+      />
       <div className="button-row">
         <button
           disabled={page === 1}
@@ -162,6 +194,7 @@ export default function Users() {
         user={selectedUser}
         onClose={() => setIsModalOpen(false)}
         onSave={handleSave}
+        isSaving={updateMutation.isPending}
       />
       <ConfirmModal
         isOpen={isDeleteOpen}

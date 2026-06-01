@@ -8,11 +8,11 @@ import { AuthProvider } from "./context/AuthContext.jsx";
 const queryClient = new QueryClient();
 
 createRoot(document.getElementById("root")).render(
-  <AuthProvider>
-    <QueryClientProvider client={queryClient}>
+  <QueryClientProvider client={queryClient}>
+    <AuthProvider>
       <BrowserRouter>
         <AppRoutes />
       </BrowserRouter>
-    </QueryClientProvider>
-  </AuthProvider>,
+    </AuthProvider>
+  </QueryClientProvider>,
 );

@@ -1,6 +1,12 @@
 import { useEffect, useState } from "react";
 
-export default function EditUserModal({ isOpen, onClose, user, onSave }) {
+export default function EditUserModal({
+  isOpen,
+  onClose,
+  user,
+  onSave,
+  isSaving,
+}) {
   const [formData, setFormData] = useState({
     firstName: "",
     email: "",
@@ -50,7 +56,9 @@ export default function EditUserModal({ isOpen, onClose, user, onSave }) {
             onChange={handleChange}
           />
           <br />
-          <button type="submit">Save</button>
+          <button type="submit" onSave={handleSubmit} disabled={isSaving}>
+            {isSaving ? "Saving..." : "Save"}
+          </button>
           <button onClick={onClose} type="button">
             Cancel
           </button>
