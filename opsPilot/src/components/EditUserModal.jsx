@@ -56,7 +56,7 @@ export default function EditUserModal({
             onChange={handleChange}
           />
           <br />
-          <button type="submit" onSave={handleSubmit} disabled={isSaving}>
+          <button type="submit" disabled={isSaving}>
             {isSaving ? "Saving..." : "Save"}
           </button>
           <button onClick={onClose} type="button">

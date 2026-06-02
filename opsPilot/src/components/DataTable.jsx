@@ -5,10 +5,10 @@ export default function DataTable({ columns, data, sortConfig, onSort }) {
         <tr>
           {columns.map((col) => (
             <th
-              key={col.accessor}
+              key={col.accessor || col.header}
               onClick={() => {
-                if (columns.sortable) {
-                  onSort(columns.accessible);
+                if (col.sortable) {
+                  onSort(col.accessible);
                 }
               }}
             >
@@ -16,8 +16,8 @@ export default function DataTable({ columns, data, sortConfig, onSort }) {
 
               {sortConfig?.key === col.accessor &&
               sortConfig.direction === "asc"
-                ? "^"
-                : "V"}
+                ? "↑"
+                : "↓"}
             </th>
           ))}
         </tr>

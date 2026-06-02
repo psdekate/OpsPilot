@@ -49,8 +49,13 @@ export default function Users() {
 
   const showToast = useToastStore((state) => state.showToast);
   const { data, isLoading, error } = useUsers();
+  console.log("query data", data);
 
   const users = data?.data?.users || [];
+  console.log(
+    "User. from query:",
+    users.find((u) => u.id === selectedUser?.id),
+  );
   const deleteMutation = useDeleteUser();
   const updateMutation = useUpdateUser();
 
@@ -65,6 +70,8 @@ export default function Users() {
   }
 
   function handleSave(updatedData) {
+    console.log("handleSave clicked", updatedData);
+
     updateMutation.mutate({
       id: selectedUser.id,
       data: updatedData,
