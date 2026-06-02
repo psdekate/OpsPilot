@@ -10,7 +10,6 @@ export default function Login() {
 
     login({ name: "Piyush", role: "admin" });
     console.log("After login");
-    // navigate("/users");
     window.location.href = "/users";
     console.log("After navigate");
   }
@@ -19,7 +18,6 @@ export default function Login() {
     <div>
       <h1>Login</h1>
       <button onClick={handleLogin}>Login as Admin</button>
-      {/* <button onClick={() => handleLogin(ROLES.VIEWER)}>Login as Viewer</button> */}
     </div>
   );
 }

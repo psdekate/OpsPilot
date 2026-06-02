@@ -13,6 +13,7 @@ import { usePermissions } from "../hooks/userPermissions";
 
 import { useAuth } from "../context/AuthContext";
 import { useDeleteUser } from "../hooks/useDeleteUser";
+import useUserTableState from "../hooks/userUserTableState";
 
 export default function Users() {
   const columns = [
@@ -35,27 +36,29 @@ export default function Users() {
     },
   ];
 
-  const [searchParams, setSearchParams] = useSearchParams();
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
-  const [sortConfig, setSortConfig] = useState({ key: "", direction: "asc" });
 
-  const userSearch = searchParams.get("search") || "";
-  const page = Number(searchParams.get("page")) || 1;
   const itemsPerPage = 8;
-  const [searchInput, setSearchInput] = useState(userSearch);
+
+  const {
+    searchParams,
+    setsearchParams,
+    userSearch,
+    page,
+    searchInput,
+    setSearchInput,
+    sortConfig,
+    setSortConfig,
+  } = useUserTableState();
 
   const showToast = useToastStore((state) => state.showToast);
   const { data, isLoading, error } = useUsers();
-  console.log("query data", data);
 
   const users = data?.data?.users || [];
-  console.log(
-    "User. from query:",
-    users.find((u) => u.id === selectedUser?.id),
-  );
+
   const deleteMutation = useDeleteUser();
   const updateMutation = useUpdateUser();
 
@@ -70,8 +73,6 @@ export default function Users() {
   }
 
   function handleSave(updatedData) {
-    console.log("handleSave clicked", updatedData);
-
     updateMutation.mutate({
       id: selectedUser.id,
       data: updatedData,

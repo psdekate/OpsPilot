@@ -11,8 +11,6 @@ export function useUpdateUser() {
     mutationFn: updateUser,
 
     onMutate: async ({ id, data }) => {
-      console.log("onMutate", id, data);
-
       await queryClient.cancelQueries({
         queryKey: ["users"],
       });
@@ -43,10 +41,6 @@ export function useUpdateUser() {
         const updatedUsers = users.map((user) =>
           user.id === id ? { ...user, ...data } : user,
         );
-        console.log(
-          "Updated user in cache:",
-          updatedUsers.find((u) => u.id === id),
-        );
 
         return {
           ...oldData,
@@ -68,11 +62,11 @@ export function useUpdateUser() {
 
     onSuccess: (data) => {
       showToast("User updated successfully");
-      console.log("User updated successfully");
     },
 
-    // onSettled: () => {
-    //   queryClient.invalidateQueries({ queryKey: ["users"] });
-    // },
+    // Dummy JSON does not persist updates. When refetched, the original data restores. For real backend, keep invalidate queries.
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ["users"] });
+    },
   });
 }
