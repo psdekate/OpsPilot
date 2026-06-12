@@ -1,7 +1,5 @@
 import { useEffect, useState } from "react";
 import "../pages/Users.css";
-import { useMemo } from "react";
-import { useSearchParams } from "react-router-dom";
 import DataTable from "../components/DataTable";
 import ConfirmModal from "../components/ConfirmModal";
 import EditUserModal from "../components/EditUserModal";
@@ -14,6 +12,7 @@ import { usePermissions } from "../hooks/userPermissions";
 import { useAuth } from "../context/AuthContext";
 import { useDeleteUser } from "../hooks/useDeleteUser";
 import useUserTableState from "../hooks/userUserTableState";
+import useUserTableData from "../hooks/useUserTableData";
 
 export default function Users() {
   const columns = [
@@ -45,7 +44,7 @@ export default function Users() {
 
   const {
     searchParams,
-    setsearchParams,
+    setSearchParams,
     userSearch,
     page,
     searchInput,
@@ -54,10 +53,17 @@ export default function Users() {
     setSortConfig,
   } = useUserTableState();
 
-  const showToast = useToastStore((state) => state.showToast);
   const { data, isLoading, error } = useUsers();
-
   const users = data?.data?.users || [];
+  const { paginatedUsers, totalPages } = useUserTableData(
+    users,
+    userSearch,
+    sortConfig,
+    page,
+    itemsPerPage,
+  );
+
+  const showToast = useToastStore((state) => state.showToast);
 
   const deleteMutation = useDeleteUser();
   const updateMutation = useUpdateUser();
@@ -95,52 +101,6 @@ export default function Users() {
     deleteMutation.mutate(userToDelete.id);
     setIsDeleteOpen(false);
   }
-
-  const filteredUsers = useMemo(() => {
-    const query = userSearch.toLowerCase().trim();
-
-    if (!query) return users;
-
-    return users.filter((user) => user.firstName.toLowerCase().includes(query));
-  }, [users, userSearch]);
-  const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
-
-  const sortedUsers = useMemo(() => {
-    if (!sortConfig.key) return filteredUsers;
-
-    return [...filteredUsers].sort((a, b) => {
-      const aValue = a[sortConfig.key]?.toString().toLowerCase();
-      const bValue = b[sortConfig.key]?.toString().toLowerCase();
-
-      if (aValue < bValue) {
-        return sortConfig.direction === "asc" ? -1 : 1;
-      }
-
-      if (aValue > bValue) {
-        return sortConfig.direction === "asc" ? 1 : -1;
-      }
-      return 0;
-    });
-  }, [filteredUsers, sortConfig]);
-
-  const paginatedUsers = sortedUsers.slice(
-    (page - 1) * itemsPerPage,
-    page * itemsPerPage,
-  );
-
-  //debounce
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setSearchParams((prev) => {
-        const params = new URLSearchParams(prev);
-        params.set("search", searchInput);
-        params.set("page", 1);
-        return params;
-      });
-    }, 500);
-
-    return () => clearTimeout(timer);
-  }, [searchInput]);
 
   //manually Sync Input with URL
   useEffect(() => {
