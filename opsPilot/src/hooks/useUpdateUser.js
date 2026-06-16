@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { updateUser } from "../services/usersApi";
 import useToastStore from "../store/toastStore";
+import { usersKeys } from "../queryKeys/usersKeys";
 
 export function useUpdateUser() {
   const queryClient = useQueryClient();
@@ -12,12 +13,12 @@ export function useUpdateUser() {
 
     onMutate: async ({ id, data }) => {
       await queryClient.cancelQueries({
-        queryKey: ["users"],
+        queryKey: usersKeys.list(),
       });
 
-      const previousUsers = queryClient.getQueryData(["users"]);
+      const previousUsers = queryClient.getQueryData(usersKeys.list());
 
-      queryClient.setQueryData(["users"], (oldData) => {
+      queryClient.setQueryData(usersKeys.list(), (oldData) => {
         if (!oldData) return oldData;
 
         const users = oldData?.data?.users || [];
@@ -33,7 +34,7 @@ export function useUpdateUser() {
         };
       });
 
-      queryClient.setQueryData(["users"], (oldData) => {
+      queryClient.setQueryData(usersKeys.list(), (oldData) => {
         if (!oldData) return oldData;
 
         const users = oldData?.data?.users || [];
@@ -55,18 +56,31 @@ export function useUpdateUser() {
     },
 
     onError: (error, variables, context) => {
-      queryClient.setQueryData(["users"], context.previousUsers);
+      queryClient.setQueryData(usersKeys.list(), context.previousUsers);
 
       showToast("Update failed - reverted");
     },
 
-    onSuccess: (data) => {
+    onSuccess: (updatedUser) => {
+      queryClient.setQueryData(usersKeys.list(), (oldData) => {
+        if (!oldData) return oldData;
+
+        return {
+          ...oldData,
+          data: {
+            ...oldData.data,
+            users: oldData.data.users.map((user) =>
+              user.id === updatedUser.id ? updatedUser : user,
+            ),
+          },
+        };
+      });
       showToast("User updated successfully");
     },
 
     // Dummy JSON does not persist updates. When refetched, the original data restores. For real backend, keep invalidate queries.
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ["users"] });
+      queryClient.invalidateQueries({ queryKey: usersKeys.list() });
     },
   });
 }

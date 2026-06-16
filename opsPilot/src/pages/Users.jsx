@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import useUserDelete from "../hooks/useUserDelete";
 import "../pages/Users.css";
 import DataTable from "../components/DataTable";
 import ConfirmModal from "../components/ConfirmModal";
@@ -6,39 +6,35 @@ import EditUserModal from "../components/EditUserModal";
 import useUsers from "../hooks/useUsers";
 import { useUpdateUser } from "../hooks/useUpdateUser";
 import useToastStore from "../store/toastStore";
-import { PERMISSIONS } from "../constants/permissions";
 import { usePermissions } from "../hooks/userPermissions";
-
 import { useAuth } from "../context/AuthContext";
 import { useDeleteUser } from "../hooks/useDeleteUser";
 import useUserTableState from "../hooks/userUserTableState";
 import useUserTableData from "../hooks/useUserTableData";
+import useUserEdit from "../hooks/useUserEdit";
+import { getUserColumns } from "../config/userTableColumns";
+import useUserActions from "../hooks/useUserActions";
+import useUserTableActions from "../hooks/useUserTableActions";
+import { PERMISSIONS } from "../constants/permissions";
 
 export default function Users() {
-  const columns = [
-    { header: "First Name", accessor: "firstName", sortable: true },
-    { header: "Last Name", accessor: "lastName", sortable: true },
-    { header: "Email", accessor: "email", sortable: true },
-    {
-      header: "Actions",
-      render: (row) => (
-        <>
-          {hasPermission(PERMISSIONS.EDIT_USER) && (
-            <button onClick={() => handleEdit(row)}>Edit</button>
-          )}
+  const { isModalOpen, setIsModalOpen, selectedUser, handleEdit } =
+    useUserEdit();
 
-          {hasPermission(PERMISSIONS.DELETE_USER) && (
-            <button onClick={() => handleDeleteClick(row)}>Delete</button>
-          )}
-        </>
-      ),
-    },
-  ];
+  const { isDeleteOpen, setIsDeleteOpen, userToDelete, handleDeleteClick } =
+    useUserDelete();
 
-  const [isDeleteOpen, setIsDeleteOpen] = useState(false);
-  const [userToDelete, setUserToDelete] = useState(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedUser, setSelectedUser] = useState(null);
+  const deleteMutation = useDeleteUser();
+  const updateMutation = useUpdateUser();
+
+  const { handleSave, confirmDelete } = useUserActions({
+    updateMutation,
+    deleteMutation,
+    selectedUser,
+    userToDelete,
+    setIsModalOpen,
+    setIsDeleteOpen,
+  });
 
   const itemsPerPage = 8;
 
@@ -53,6 +49,8 @@ export default function Users() {
     setSortConfig,
   } = useUserTableState();
 
+  const { handleSort } = useUserTableActions(setSortConfig);
+
   const { data, isLoading, error } = useUsers();
   const users = data?.data?.users || [];
   const { paginatedUsers, totalPages } = useUserTableData(
@@ -65,47 +63,15 @@ export default function Users() {
 
   const showToast = useToastStore((state) => state.showToast);
 
-  const deleteMutation = useDeleteUser();
-  const updateMutation = useUpdateUser();
-
   const { user } = useAuth();
   const { hasPermission } = usePermissions(user?.role);
 
-  function handleSort(key) {
-    setSortConfig((prev) => ({
-      key,
-      direction: prev.key === key && prev.direction === "asc" ? "desc" : "asc",
-    }));
-  }
-
-  function handleSave(updatedData) {
-    updateMutation.mutate({
-      id: selectedUser.id,
-      data: updatedData,
-    });
-
-    setIsModalOpen(false);
-  }
-
-  function handleEdit(user) {
-    setSelectedUser(user);
-    setIsModalOpen(true);
-  }
-
-  function handleDeleteClick(user) {
-    setUserToDelete(user);
-    setIsDeleteOpen(true);
-  }
-
-  function confirmDelete() {
-    deleteMutation.mutate(userToDelete.id);
-    setIsDeleteOpen(false);
-  }
-
-  //manually Sync Input with URL
-  useEffect(() => {
-    setSearchInput(userSearch);
-  }, [userSearch]);
+  const columns = getUserColumns({
+    canEdit: hasPermission(PERMISSIONS.EDIT_USER),
+    canDelete: hasPermission(PERMISSIONS.DELETE_USER),
+    onEdit: handleEdit,
+    onDelete: handleDeleteClick,
+  });
 
   if (isLoading) return <p>Loading users...</p>;
   if (error) return <p>{error}</p>;

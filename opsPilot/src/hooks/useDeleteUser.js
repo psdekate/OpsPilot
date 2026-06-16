@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { deleteUser } from "../services/usersApi";
 import useToastStore from "../store/toastStore";
+import { usersKeys } from "../queryKeys/usersKeys";
 
 export function useDeleteUser() {
   const queryClient = useQueryClient();
@@ -10,7 +11,7 @@ export function useDeleteUser() {
     mutationFn: deleteUser,
 
     onMutate: async (id) => {
-      await queryClient.cancelQueries({ queryKey: ["users"] });
+      await queryClient.cancelQueries({ queryKey: usersKeys.list() });
 
       const previousUsers = queryClient.getQueryData(["users"]);
 
@@ -40,7 +41,7 @@ export function useDeleteUser() {
     },
 
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ["users"] });
+      queryClient.invalidateQueries({ queryKey: usersKeys.list() });
     },
   });
 }
