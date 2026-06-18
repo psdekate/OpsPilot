@@ -5,7 +5,6 @@ import ConfirmModal from "../components/ConfirmModal";
 import EditUserModal from "../components/EditUserModal";
 import useUsers from "../hooks/useUsers";
 import { useUpdateUser } from "../hooks/useUpdateUser";
-import useToastStore from "../store/toastStore";
 import { usePermissions } from "../hooks/userPermissions";
 import { useAuth } from "../context/AuthContext";
 import { useDeleteUser } from "../hooks/useDeleteUser";
@@ -60,8 +59,6 @@ export default function Users() {
     page,
     itemsPerPage,
   );
-
-  const showToast = useToastStore((state) => state.showToast);
 
   const { user } = useAuth();
   const { hasPermission } = usePermissions(user?.role);

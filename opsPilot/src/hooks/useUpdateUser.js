@@ -6,8 +6,6 @@ import { usersKeys } from "../queryKeys/usersKeys";
 export function useUpdateUser() {
   const queryClient = useQueryClient();
 
-  const showToast = useToastStore((state) => state.showToast);
-
   return useMutation({
     mutationFn: updateUser,
 
@@ -57,8 +55,6 @@ export function useUpdateUser() {
 
     onError: (error, variables, context) => {
       queryClient.setQueryData(usersKeys.list(), context.previousUsers);
-
-      showToast("Update failed - reverted");
     },
 
     onSuccess: (updatedUser) => {
@@ -75,7 +71,6 @@ export function useUpdateUser() {
           },
         };
       });
-      showToast("User updated successfully");
     },
 
     // Dummy JSON does not persist updates. When refetched, the original data restores. For real backend, keep invalidate queries.
